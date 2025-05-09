@@ -1,0 +1,24 @@
+.parking-spot {
+    border: 2px solid #ddd;
+    padding: 15px;
+    text-align: center;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.spot-available {
+    background-color: #e7f5e7;
+    border-color: #28a745;
+}
+
+.spot-occupied {
+    background-color: #ffe5e5;
+    border-color: #dc3545;
+}
+
+.spot-reserved {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+}
