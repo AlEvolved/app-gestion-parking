@@ -1,53 +1,56 @@
-body {
-    background-color: #f8f9fa;
+/* Styles pour la page parking */
+.spot-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 120px;
 }
 
-.navbar {
-    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+.spot-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.nav-link.active {
-    background-color: rgba(255,255,255,.1);
-    border-radius: 5px;
+.stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
 }
 
-.card {
-    box-shadow: 0 2px 4px rgba(0,0,0,.05);
-    border: none;
-    border-radius: 10px;
+#gridView {
+    display: flex;
+    flex-wrap: wrap;
 }
 
-.parking-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1rem;
-    padding: 1rem;
+#listView {
+    display: none;
 }
 
-.parking-spot {
-    padding: 1.5rem;
-    text-align: center;
-    border-radius: 8px;
-    font-weight: bold;
+.badge {
+    padding: 0.5em 0.7em;
 }
 
-.available {
-    background-color: #d1e7dd;
-    color: #0f5132;
+/* Animation pour les compteurs */
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.occupied {
-    background-color: #f8d7da;
-    color: #842029;
+#disponibles, #occupees, #reservees, #indisponibles {
+    animation: countUp 0.5s ease-out;
 }
 
-.reserved {
-    background-color: #fff3cd;
-    color: #664d03;
-}
+/* Styles responsive */
+@media (max-width: 767.98px) {
+    .stat-icon {
+        font-size: 2rem;
+    }
 
-@media (max-width: 768px) {
-    .parking-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .card-title {
+        font-size: 0.9rem;
     }
 }

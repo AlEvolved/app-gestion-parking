@@ -1,46 +1,92 @@
 <?php
 session_start();
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../config/Database.php';
 
+// Augmenter la durée de vie de la session à 2 heures
+ini_set('session.gc_maxlifetime', 7200);
+session_set_cookie_params(7200, '/');
+
+// Déterminer l'origine de la requête
+$allowedOrigins = [
+    'http://localhost',
+    'http://localhost:8000',
+    'http://127.0.0.1',
+    'http://127.0.0.1:8000'
+];
+$origin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+
+// Headers CORS
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
+if(in_array($origin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $origin");
+    header('Access-Control-Allow-Credentials: true');
+} else {
+    header('Access-Control-Allow-Origin: *');
+}
+header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
-header('Access-Control-Allow-Credentials: true');
 
+// Traitement des requêtes OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit(0);
+    http_response_code(200);
+    exit();
+}
+
+// Récupération des données
+$data = json_decode(file_get_contents('php://input'), true);
+$email = $data['email'] ?? '';
+$password = $data['password'] ?? '';
+
+if (empty($email) || empty($password)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Email et mot de passe requis'
+    ]);
+    exit;
 }
 
 try {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $database = new Database();
+    $conn = $database->getConnection();
 
-    if (!isset($data['email']) || !isset($data['password'])) {
-        throw new Exception('Email et mot de passe requis');
+    // Vérifiez d'abord si l'email existe
+    $checkEmail = $conn->prepare("SELECT COUNT(*) as count FROM users WHERE email = ?");
+    $checkEmail->bind_param('s', $email);
+    $checkEmail->execute();
+    $emailResult = $checkEmail->get_result()->fetch_assoc();
+
+    if ($emailResult['count'] == 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Email ou mot de passe incorrect'
+        ]);
+        exit;
     }
 
-    $email = $data['email'];
-    $password = $data['password'];
+    // Si l'email existe, vérifiez les identifiants
+    $stmt = $conn->prepare('SELECT id, email, mot_de_passe, role FROM users WHERE email = ?');
+    $stmt->bind_param('s', $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
 
-    $pdo = new PDO(
-        'mysql:host=localhost;dbname=app_gestion_parking;charset=utf8',
-        'root',
-        'Radioactive45@',
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
-
-    $stmt = $pdo->prepare('SELECT * FROM users WHERE email = ?');
-    $stmt->execute([$email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user && password_verify($password, $user['password'])) {
+    if ($user && password_verify($password, $user['mot_de_passe'])) {
+        // Connexion réussie
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['email'] = $user['email'];
-        $_SESSION['logged_in'] = true;
+        $_SESSION['role'] = $user['role'];
+
+        // Régénérer l'ID de session pour éviter la fixation de session
+        session_regenerate_id(true);
+
+        // Réinitialiser le cookie de session
+        setcookie(session_name(), session_id(), time() + 7200, '/');
 
         echo json_encode([
             'success' => true,
-            'message' => 'Connexion réussie'
+            'message' => 'Connexion réussie',
+            'role' => $user['role'],
+            'user_id' => $user['id']
         ]);
     } else {
         echo json_encode([
@@ -49,9 +95,9 @@ try {
         ]);
     }
 } catch (Exception $e) {
-    http_response_code(400);
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => 'Erreur serveur: ' . $e->getMessage()
     ]);
 }
+?>

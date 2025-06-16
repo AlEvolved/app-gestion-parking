@@ -2,152 +2,20 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parking - Gestion Parking</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="../assets/css/parking.css">
+    <title>Plan du parking</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/parking-style.css">
 </head>
 <body>
-<!-- La navbar sera injectée ici -->
+<div id="navbar-container"></div>
 
 <div class="container mt-4">
-    <!-- Statistiques rapides -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <h5>Places Disponibles</h5>
-                    <h2>15</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-danger text-white">
-                <div class="card-body">
-                    <h5>Places Occupées</h5>
-                    <h2>30</h2>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card bg-warning">
-                <div class="card-body">
-                    <h5>Places Réservées</h5>
-                    <h2>5</h2>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-12 mb-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">État du Parking</h5>
-                    <div class="btn-group">
-                        <button class="btn btn-outline-primary active">Vue Grille</button>
-                        <button class="btn btn-outline-primary">Vue Liste</button>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex gap-2 mb-3">
-                            <span class="badge bg-success">Disponible</span>
-                            <span class="badge bg-danger">Occupé</span>
-                            <span class="badge bg-warning">Réservé</span>
-                        </div>
-                    </div>
-
-                    <!-- Grille du parking -->
-                    <div class="row g-3">
-                        <!-- Rangée A -->
-                        <div class="col-md-2">
-                            <div class="parking-spot spot-available">
-                                <h4>A1</h4>
-                                <i class="bi bi-p-square"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="parking-spot spot-occupied">
-                                <h4>A2</h4>
-                                <i class="bi bi-p-square-fill"></i>
-                                <small>Occupé</small>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="parking-spot spot-reserved">
-                                <h4>A3</h4>
-                                <i class="bi bi-p-square"></i>
-                                <small>Réservé</small>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="parking-spot spot-available">
-                                <h4>A4</h4>
-                                <i class="bi bi-p-square"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="parking-spot spot-available">
-                                <h4>A5</h4>
-                                <i class="bi bi-p-square"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="parking-spot spot-occupied">
-                                <h4>A6</h4>
-                                <i class="bi bi-p-square-fill"></i>
-                                <small>Occupé</small>
-                            </div>
-                        </div>
-
-                        <!-- Rangée B -->
-                        <div class="col-md-2">
-                            <div class="parking-spot spot-available">
-                                <h4>B1</h4>
-                                <i class="bi bi-p-square"></i>
-                            </div>
-                        </div>
-                        <div class="col-md-2">
-                            <div class="parking-spot spot-reserved">
-                                <h4>B2</h4>
-                                <i class="bi bi-p-square"></i>
-                                <small>Réservé</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <h2 class="mb-4 text-center fw-bold"><i class="bi bi-grid-3x3"></i> Plan du parking</h2>
+    <div id="parkingContent"></div>
 </div>
 
-<!-- Modal de détails -->
-<div class="modal fade" id="spotDetailsModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Détails de la place</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p><strong>Place:</strong> <span id="spotNumber"></span></p>
-                <p><strong>Statut:</strong> <span id="spotStatus"></span></p>
-                <p><strong>Occupant:</strong> <span id="spotOccupant"></span></p>
-                <p><strong>Durée:</strong> <span id="spotDuration"></span></p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-primary">Réserver</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/navbar.js"></script>
 <script src="../assets/js/parking.js"></script>
-<script src="../assets/js/auth.js"></script>
 </body>
 </html>

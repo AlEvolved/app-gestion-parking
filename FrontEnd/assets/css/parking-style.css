@@ -1,0 +1,55 @@
+body {
+    background-color: #f6f8fa;
+}
+
+#parkingContent {
+    min-height: 300px;
+}
+
+.spot-card {
+    border: none;
+    border-radius: 16px;
+    transition: box-shadow 0.2s, transform 0.2s;
+    background: #fff;
+}
+
+.spot-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    transform: translateY(-4px) scale(1.03);
+}
+
+.spot-card .card-title {
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+}
+
+.badge-statut {
+    font-size: 1rem;
+    border-radius: 20px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.bg-disponible {
+    background: #e6f4ea !important;
+    color: #198754 !important;
+}
+
+.bg-occupee {
+    background: #fde2e1 !important;
+    color: #dc3545 !important;
+}
+
+.bg-indisponible {
+    background: #f3f4f6 !important;
+    color: #6c757d !important;
+}
+
+@media (max-width: 576px) {
+    .spot-card .card-title {
+        font-size: 1.1rem;
+    }
+    .spot-card .display-5 {
+        font-size: 2rem;
+    }
+}

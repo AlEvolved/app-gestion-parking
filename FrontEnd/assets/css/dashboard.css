@@ -1,0 +1,106 @@
+/* Styles généraux pour le tableau de bord */
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: none;
+    margin-bottom: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    border-top-left-radius: 10px !important;
+    border-top-right-radius: 10px !important;
+    font-weight: bold;
+}
+
+/* Styles pour les cartes de statistiques */
+.stat-card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+/* Animation pour les chiffres */
+@keyframes countUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#totalPlaces, #availablePlaces, #occupiedPlaces, #activeReservations {
+    animation: countUp 0.5s ease-out;
+}
+
+/* Styles pour les graphiques */
+canvas {
+    max-height: 300px;
+}
+
+/* Styles pour les tableaux */
+.table {
+    margin-bottom: 0;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+/* Styles pour les badges */
+.badge {
+    font-weight: normal;
+    font-size: 0.85rem;
+    padding: 0.35em 0.65em;
+}
+
+/* Styles pour le bouton d'actualisation */
+#refreshBtn:hover {
+    animation: spin 1s;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+    .stat-icon {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.75rem;
+    }
+
+    .card-title {
+        font-size: 0.9rem;
+    }
+}

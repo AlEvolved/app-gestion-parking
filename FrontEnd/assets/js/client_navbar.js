@@ -26,4 +26,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('navbar-container').innerHTML = navbarHtml;
     document.getElementById('userEmail').textContent = localStorage.getItem('userEmail');
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        fetch('../../BackEnd/Controllers/LogoutController.php', {
+            credentials: 'include'
+        })
+            .then(() => {
+                localStorage.clear();
+                window.location.href = 'login.html';
+            })
+            .catch(error => {
+                console.error('Erreur lors de la déconnexion:', error);
+                localStorage.clear();
+                window.location.href = 'login.html';
+            });
+    });
 });
