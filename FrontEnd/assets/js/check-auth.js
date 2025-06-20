@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', function() {
         currentPage.includes('dashboard.html') ||
         currentPage.includes('client.html') ||
         currentPage.includes('place.html') ||
-        currentPage.includes('reservations.html')
     ) {
         if (userRole !== 'admin') {
             window.location.href = 'home_client.html';
@@ -18,7 +17,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Protection des routes client
-    if (currentPage.includes('client_') || currentPage.includes('client-reservations.html')) {
+    if (
+        currentPage.includes('client_') ||
+        currentPage.includes('client_reservations.html')
+    ) {
         if (userRole !== 'client') {
             window.location.href = 'home.html';
         }

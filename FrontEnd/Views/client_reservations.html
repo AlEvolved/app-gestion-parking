@@ -3,72 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Client - Mes Réservations</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="../assets/css/style.css" rel="stylesheet">
+    <title>Mes réservations - Gestion Parking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
 <div id="navbar-container"></div>
 
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Nouvelle réservation</h3>
-                </div>
-                <div class="card-body">
-                    <form id="reservationForm">
-                        <div class="mb-3">
-                            <label for="placeNumber" class="form-label">Choisir une place</label>
-                            <select class="form-select" id="placeNumber" required>
-                                <option value="">Sélectionnez une place</option>
-                                <option value="1">Place 1 (Libre)</option>
-                                <option value="4">Place 4 (Libre)</option>
-                                <option value="6">Place 6 (Libre)</option>
-                            </select>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="dateDebut" class="form-label">À partir de</label>
-                                <input type="datetime-local" class="form-control" id="dateDebut" required>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="dateFin" class="form-label">Jusqu'à</label>
-                                <input type="datetime-local" class="form-control" id="dateFin" required>
-                            </div>
-                        </div>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary">Réserver maintenant</button>
-                        </div>
-                    </form>
-
-                    <hr class="my-4">
-
-                    <h4 class="mb-3">Historique de mes réservations</h4>
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>Place</th>
-                                <th>Date début</th>
-                                <th>Date fin</th>
-                                <th>Statut</th>
-                            </tr>
-                            </thead>
-                            <tbody id="reservationsTableBody">
-                            <!-- Les réservations seront injectées ici via JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <h2 class="mb-4 text-center fw-bold"><i class="bi bi-calendar-check"></i> Mes réservations</h2>
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <input type="date" class="form-control" id="dateFilter" placeholder="Date">
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" id="statusFilter">
+                <option value="">Tous les statuts</option>
+                <option value="en_cours">En cours</option>
+                <option value="terminee">Terminée</option>
+                <option value="annulee">Annulée</option>
+            </select>
+        </div>
+        <div class="col-md-4">
+            <button class="btn btn-outline-primary w-100" id="filterButton">Filtrer</button>
         </div>
     </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Place</th>
+                <th>Date début</th>
+                <th>Date fin</th>
+                <th>Montant</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody id="reservationsTable">
+
+            </tbody>
+        </table>
+    </div>
+    <div class="alert alert-danger d-none" id="errorMessage"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../assets/js/client_navbar.js"></script>
-<script src="../assets/js/check-auth.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/client_reservations.js"></script>
 </body>
 </html>

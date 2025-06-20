@@ -75,6 +75,7 @@ try {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['email'] = $user['email'];
         $_SESSION['role'] = $user['role'];
+        $_SESSION['is_admin'] = ($user['role'] === 'admin'); // AJOUT ICI
 
         // Régénérer l'ID de session pour éviter la fixation de session
         session_regenerate_id(true);

@@ -4,7 +4,7 @@ class Place {
     public function __construct($db) { $this->conn = $db; }
 
     public function getAll() {
-        $query = "SELECT p.*, pk.nom as parking_nom FROM places p LEFT JOIN parkings pk ON p.parking_id = pk.id ORDER BY p.numero";
+        $query = "SELECT p.id, p.numero, p.statut, pk.nom as parking_nom FROM places p LEFT JOIN parkings pk ON p.parking_id = pk.id ORDER BY p.numero";
         $result = $this->conn->query($query);
         $places = [];
         while ($row = $result->fetch_assoc()) {
@@ -14,7 +14,7 @@ class Place {
     }
 
     public function getById($id) {
-        $stmt = $this->conn->prepare("SELECT p.*, pk.nom as parking_nom FROM places p LEFT JOIN parkings pk ON p.parking_id = pk.id WHERE p.id = ?");
+        $stmt = $this->conn->prepare("SELECT p.id, p.numero, p.statut, pk.nom as parking_nom FROM places p LEFT JOIN parkings pk ON p.parking_id = pk.id WHERE p.id = ?");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $result = $stmt->get_result();

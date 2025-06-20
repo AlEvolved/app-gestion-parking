@@ -2,30 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
     loadPlaces();
     loadParkings();
 
-    document.getElementById('addPlaceForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const data = {
-            numero: document.getElementById('numero').value,
-            parking_id: document.getElementById('parking').value,
-            statut: document.getElementById('statut').value
-        };
-        fetch('../../BackEnd/Controllers/PlaceController.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(data)
-        })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    bootstrap.Modal.getInstance(document.getElementById('addPlaceModal')).hide();
-                    document.getElementById('addPlaceForm').reset();
-                    loadPlaces();
-                } else {
-                    alert('Erreur: ' + data.message);
-                }
-            });
-    });
 
     document.getElementById('editPlaceForm').addEventListener('submit', function(e) {
         e.preventDefault();
@@ -84,7 +60,7 @@ function loadParkings() {
     fetch('../../BackEnd/Controllers/ParkingController.php', { credentials: 'include' })
         .then(r => r.json())
         .then(data => {
-            const selects = [document.getElementById('parking'), document.getElementById('editParking')];
+            const selects = [document.getElementById('editParking')];
             selects.forEach(select => {
                 if (!select) return;
                 select.innerHTML = '<option value="">Sélectionner un parking</option>';

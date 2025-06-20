@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
             <div class="container">
                 <a class="navbar-brand" href="dashboard.html">
-                    <i class="bi bi-p-circle-fill"></i> Gestion Parking
+                    <i class="bi bi-p-circle-fill"></i> MyPark
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>

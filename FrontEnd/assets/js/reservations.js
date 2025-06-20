@@ -1,185 +1,210 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const BASE_URL = '/app-gestion-parking/';
+    const RESERVATION_API = BASE_URL + 'BackEnd/Controllers/AdminReservationController.php';
     const reservationsTable = document.getElementById('reservationsTable');
-    const paginationElement = document.getElementById('pagination');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
     const statusFilter = document.getElementById('statusFilter');
     const dateFilter = document.getElementById('dateFilter');
     const searchFilter = document.getElementById('searchFilter');
     const filterButton = document.getElementById('filterButton');
+    const pagination = document.getElementById('pagination');
 
+    // Modale et formulaire d'édition
+    const editModal = new bootstrap.Modal(document.getElementById('editReservationModal'));
+    const editReservationForm = document.getElementById('editReservationForm');
+    const updateReservationBtn = document.getElementById('updateReservation');
+
+    // Pagination
     let currentPage = 1;
-    const itemsPerPage = 10;
-    let totalItems = 0;
+    let pageSize = 10;
+    let allReservations = [];
 
+    // Initialisation
     loadReservations();
-    loadUsers();
+    loadClients();
     loadPlaces();
 
-    if (filterButton) {
-        filterButton.addEventListener('click', function() {
-            currentPage = 1;
-            loadReservations();
-        });
-    }
+    // Filtres
+    filterButton.addEventListener('click', function() {
+        displayReservations(filterReservations(allReservations));
+    });
 
-    document.getElementById('saveReservation')?.addEventListener('click', createReservation);
-    document.getElementById('updateReservation')?.addEventListener('click', updateReservation);
+    // Edition réservation
+    updateReservationBtn.addEventListener('click', function() {
+        updateReservation();
+    });
 
-    function loadReservations() {
-        const statut = statusFilter ? statusFilter.value : '';
-        const date = dateFilter ? dateFilter.value : '';
-        const search = searchFilter ? searchFilter.value : '';
-
-        const url = `/app-gestion-parking/BackEnd/Controllers/ReservationController.php?page=${currentPage}&statut=${statut}&date=${date}&search=${search}`;
-
-        fetch(url, { credentials: 'include' })
-            .then(response => {
-                if (!response.ok) throw new Error('Erreur réseau');
-                return response.json();
-            })
+    // Remplir les clients dans le formulaire d'édition
+    function loadClients() {
+        fetch(BASE_URL + 'BackEnd/Controllers/UserController.php?role=client', { credentials: 'include' })
+            .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    displayReservations(data.data);
-                    totalItems = data.total || data.data.length;
-                    setupPagination();
-                } else {
-                    reservationsTable.innerHTML = `<tr><td colspan="8" class="text-center">${data.message || 'Erreur'}</td></tr>`;
+                let clients = [];
+                if (data.success && Array.isArray(data.data)) {
+                    clients = data.data;
                 }
-            })
-            .catch(error => {
-                reservationsTable.innerHTML = `<tr><td colspan="8" class="text-center">Une erreur s'est produite lors du chargement des réservations.</td></tr>`;
+                const select = document.getElementById('editClient');
+                select.innerHTML = '<option value="">Sélectionner un client</option>';
+                clients.forEach(c => {
+                    select.innerHTML += `<option value="${c.id}">${c.prenom} ${c.nom} (${c.email})</option>`;
+                });
             });
     }
 
+    // Remplir les places dans le formulaire d'édition
+    function loadPlaces(dateDebut = '', dateFin = '', selectId = 'editPlace') {
+        let url = BASE_URL + 'BackEnd/Controllers/PlaceController.php';
+        if (dateDebut && dateFin) {
+            url += `?disponible=1&date_debut=${encodeURIComponent(dateDebut)}&date_fin=${encodeURIComponent(dateFin)}`;
+        }
+        fetch(url, { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                let places = [];
+                if (data.success && Array.isArray(data.data)) {
+                    places = data.data;
+                }
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Sélectionner une place</option>';
+                places.forEach(p => {
+                    select.innerHTML += `<option value="${p.id}">#${p.numero}</option>`;
+                });
+            });
+    }
+
+    // Recharge les places quand les dates changent (édition)
+    document.getElementById('editDateDebut').addEventListener('change', function() {
+        loadPlaces(this.value, document.getElementById('editDateFin').value, 'editPlace');
+    });
+    document.getElementById('editDateFin').addEventListener('change', function() {
+        loadPlaces(document.getElementById('editDateDebut').value, this.value, 'editPlace');
+    });
+
+    // Chargement des réservations
+    function loadReservations() {
+        fetch(RESERVATION_API, { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && Array.isArray(data.data)) {
+                    allReservations = data.data;
+                    displayReservations(filterReservations(allReservations));
+                } else {
+                    allReservations = [];
+                    reservationsTable.innerHTML = '<tr><td colspan="8" class="text-center">Aucune réservation trouvée.</td></tr>';
+                }
+            })
+            .catch(() => {
+                allReservations = [];
+                reservationsTable.innerHTML = '<tr><td colspan="8" class="text-center">Erreur de chargement.</td></tr>';
+            });
+    }
+
+    // Filtrage
+    function filterReservations(reservations) {
+        let filtered = reservations;
+        if (statusFilter.value) {
+            filtered = filtered.filter(r => r.statut === statusFilter.value);
+        }
+        if (dateFilter.value) {
+            filtered = filtered.filter(r => r.date_debut && r.date_debut.startsWith(dateFilter.value));
+        }
+        if (searchFilter.value) {
+            const search = searchFilter.value.toLowerCase();
+            filtered = filtered.filter(r =>
+                (r.utilisateur_nom_complet && r.utilisateur_nom_complet.toLowerCase().includes(search)) ||
+                (r.nom && r.nom.toLowerCase().includes(search)) ||
+                (r.prenom && r.prenom.toLowerCase().includes(search))
+            );
+        }
+        return filtered;
+    }
+
+    // Affichage des réservations avec pagination
     function displayReservations(reservations) {
-        if (!reservationsTable) return;
         reservationsTable.innerHTML = '';
-        if (!reservations || reservations.length === 0) {
-            reservationsTable.innerHTML = `<tr><td colspan="8" class="text-center">Aucune réservation trouvée</td></tr>`;
+        if (reservations.length === 0) {
+            reservationsTable.innerHTML = '<tr><td colspan="8" class="text-center">Aucune réservation trouvée.</td></tr>';
+            pagination.innerHTML = '';
             return;
         }
-        reservations.forEach(reservation => {
-            const statusBadge = getStatusBadge(reservation.statut);
-            const dateDebut = formatDateTime(reservation.date_debut);
-            const dateFin = formatDateTime(reservation.date_fin);
+        const totalPages = Math.ceil(reservations.length / pageSize);
+        if (currentPage > totalPages) currentPage = 1;
+        const start = (currentPage - 1) * pageSize;
+        const pageReservations = reservations.slice(start, start + pageSize);
+
+        pageReservations.forEach(res => {
             reservationsTable.innerHTML += `
                 <tr>
-                    <td>${reservation.id}</td>
-                    <td>${reservation.place_numero || reservation.place_id}</td>
-                    <td>${reservation.utilisateur_nom_complet || reservation.utilisateur_id}</td>
-                    <td>${dateDebut}</td>
-                    <td>${dateFin}</td>
-                    <td>${reservation.montant}€</td>
-                    <td>${statusBadge}</td>
+                    <td>${res.id}</td>
+                    <td>#${res.place_numero || res.place_id}</td>
+                    <td>${res.utilisateur_nom_complet || res.prenom + ' ' + res.nom}</td>
+                    <td>${res.date_debut ? res.date_debut.replace('T', ' ').substring(0, 16) : '-'}</td>
+                    <td>${res.date_fin ? res.date_fin.replace('T', ' ').substring(0, 16) : '-'}</td>
+                    <td>${res.montant ? res.montant + ' €' : '-'}</td>
+                    <td><span class="badge ${getStatusClass(res.statut)}">${formatStatus(res.statut)}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-primary" onclick="editReservation(${reservation.id})"><i class="bi bi-pencil"></i></button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteReservation(${reservation.id})"><i class="bi bi-trash"></i></button>
+                        <button class="btn btn-sm btn-primary me-1" onclick="editReservation(${res.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteReservation(${res.id})"><i class="bi bi-trash"></i></button>
                     </td>
                 </tr>
             `;
         });
+        renderPagination(totalPages);
     }
 
-    function setupPagination() {
-        if (!paginationElement) return;
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
-        paginationElement.innerHTML = '';
-        paginationElement.innerHTML += `
-            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage - 1}">Précédent</a>
-            </li>
-        `;
+    // Pagination Bootstrap
+    function renderPagination(totalPages) {
+        pagination.innerHTML = '';
+        if (totalPages <= 1) return;
         for (let i = 1; i <= totalPages; i++) {
-            paginationElement.innerHTML += `
-                <li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+            pagination.innerHTML += `
+                <li class="page-item${i === currentPage ? ' active' : ''}">
+                    <a class="page-link" href="#" onclick="goToPage(${i});return false;">${i}</a>
                 </li>
             `;
         }
-        paginationElement.innerHTML += `
-            <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage + 1}">Suivant</a>
-            </li>
-        `;
-        document.querySelectorAll('.page-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const page = parseInt(this.getAttribute('data-page'));
-                if (!isNaN(page) && page > 0 && page <= totalPages && page !== currentPage) {
-                    currentPage = page;
-                    loadReservations();
-                }
-            });
-        });
     }
 
-    function loadUsers() {
-        fetch('/app-gestion-parking/BackEnd/Controllers/UserController.php', { credentials: 'include' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) populateUserDropdowns(data.data);
-            });
+    // Pour la pagination (exposé sur window)
+    window.goToPage = function(page) {
+        currentPage = page;
+        displayReservations(filterReservations(allReservations));
+    };
+
+    // Statut badge
+    function getStatusClass(statut) {
+        if (!statut) return 'bg-secondary';
+        if (statut === 'en_cours') return 'bg-primary';
+        if (statut === 'terminee') return 'bg-success';
+        if (statut === 'annulee') return 'bg-danger';
+        return 'bg-secondary';
+    }
+    function formatStatus(statut) {
+        if (statut === 'en_cours') return 'En cours';
+        if (statut === 'terminee') return 'Terminée';
+        if (statut === 'annulee') return 'Annulée';
+        return statut || '-';
     }
 
-    function loadPlaces() {
-        fetch('/app-gestion-parking/BackEnd/Controllers/PlaceController.php', { credentials: 'include' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) populatePlaceDropdowns(data.data);
-            });
-    }
+    // Pré-remplir et ouvrir la modale d’édition
+    window.editReservation = function(id) {
+        const res = allReservations.find(r => r.id == id);
+        if (!res) return;
+        document.getElementById('editId').value = res.id;
+        document.getElementById('editClient').value = res.utilisateur_id || '';
+        document.getElementById('editPlace').value = res.place_id || '';
+        document.getElementById('editDateDebut').value = res.date_debut ? res.date_debut.substring(0,16) : '';
+        document.getElementById('editDateFin').value = res.date_fin ? res.date_fin.substring(0,16) : '';
+        document.getElementById('editStatut').value = res.statut || 'en_cours';
+        editModal.show();
+        loadPlaces(document.getElementById('editDateDebut').value, document.getElementById('editDateFin').value, 'editPlace');
+    };
 
-    function populateUserDropdowns(users) {
-        const userDropdowns = [document.getElementById('client'), document.getElementById('editClient')];
-        userDropdowns.forEach(dropdown => {
-            if (!dropdown) return;
-            dropdown.innerHTML = '<option value="">Sélectionner un client</option>';
-            users.forEach(user => {
-                dropdown.innerHTML += `<option value="${user.id}">${user.prenom} ${user.nom} (${user.email})</option>`;
-            });
-        });
-    }
-
-    function populatePlaceDropdowns(places) {
-        const placeDropdowns = [document.getElementById('place'), document.getElementById('editPlace')];
-        placeDropdowns.forEach(dropdown => {
-            if (!dropdown) return;
-            dropdown.innerHTML = '<option value="">Sélectionner une place</option>';
-            places.forEach(place => {
-                if (place.statut === 'disponible') {
-                    dropdown.innerHTML += `<option value="${place.id}">Place ${place.numero} (${place.parking_nom})</option>`;
-                }
-            });
-        });
-    }
-
-    function createReservation() {
-        const data = {
-            utilisateur_id: document.getElementById('client').value,
-            place_id: document.getElementById('place').value,
-            date_debut: document.getElementById('dateDebut').value,
-            date_fin: document.getElementById('dateFin').value,
-            statut: document.getElementById('statut').value
-        };
-        fetch('/app-gestion-parking/BackEnd/Controllers/ReservationController.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('addReservationModal'));
-                    modal?.hide();
-                    loadReservations();
-                    alert('Réservation créée avec succès');
-                } else {
-                    alert('Erreur: ' + data.message);
-                }
-            });
-    }
-
+    // Mise à jour réservation
     function updateReservation() {
+        errorMessage.classList.add('d-none');
+        successMessage.classList.add('d-none');
         const data = {
             id: document.getElementById('editId').value,
             utilisateur_id: document.getElementById('editClient').value,
@@ -188,77 +213,58 @@ document.addEventListener('DOMContentLoaded', function() {
             date_fin: document.getElementById('editDateFin').value,
             statut: document.getElementById('editStatut').value
         };
-        fetch('/app-gestion-parking/BackEnd/Controllers/ReservationController.php', {
+        if (!data.id || !data.utilisateur_id || !data.place_id || !data.date_debut || !data.date_fin) {
+            errorMessage.textContent = 'Veuillez remplir tous les champs.';
+            errorMessage.classList.remove('d-none');
+            return;
+        }
+        fetch(RESERVATION_API, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify(data)
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById('editReservationModal'));
-                    modal?.hide();
+            .then(res => res.json())
+            .then(resp => {
+                if (resp.success) {
+                    successMessage.textContent = 'Réservation mise à jour.';
+                    successMessage.classList.remove('d-none');
+                    editModal.hide();
                     loadReservations();
-                    alert('Réservation mise à jour avec succès');
                 } else {
-                    alert('Erreur: ' + data.message);
+                    errorMessage.textContent = resp.message || 'Erreur lors de la mise à jour.';
+                    errorMessage.classList.remove('d-none');
                 }
+            })
+            .catch(() => {
+                errorMessage.textContent = 'Erreur de connexion au serveur.';
+                errorMessage.classList.remove('d-none');
             });
     }
 
-    function formatDateTime(dateTimeStr) {
-        if (!dateTimeStr) return '';
-        const date = new Date(dateTimeStr);
-        return date.toLocaleDateString('fr-FR', {
-            day: '2-digit', month: '2-digit', year: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
-    }
-
-    function getStatusBadge(status) {
-        const statusMap = {
-            'en_cours': '<span class="badge bg-primary">En cours</span>',
-            'terminee': '<span class="badge bg-success">Terminée</span>',
-            'annulee': '<span class="badge bg-danger">Annulée</span>'
-        };
-        return statusMap[status] || `<span class="badge bg-secondary">${status}</span>`;
-    }
-});
-
-function editReservation(id) {
-    fetch(`/app-gestion-parking/BackEnd/Controllers/ReservationController.php?id=${id}`, { credentials: 'include' })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const reservation = data.data;
-                document.getElementById('editId').value = reservation.id;
-                document.getElementById('editClient').value = reservation.utilisateur_id;
-                document.getElementById('editPlace').value = reservation.place_id;
-                document.getElementById('editDateDebut').value = reservation.date_debut.replace(' ', 'T');
-                document.getElementById('editDateFin').value = reservation.date_fin.replace(' ', 'T');
-                document.getElementById('editStatut').value = reservation.statut;
-                const modal = new bootstrap.Modal(document.getElementById('editReservationModal'));
-                modal.show();
-            } else {
-                alert('Erreur: ' + data.message);
-            }
-        });
-}
-
-function deleteReservation(id) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cette réservation ?')) {
-        fetch(`/app-gestion-parking/BackEnd/Controllers/ReservationController.php?id=${id}`, {
+    // Suppression réservation
+    window.deleteReservation = function(id) {
+        if (!confirm('Supprimer cette réservation ?')) return;
+        fetch(RESERVATION_API, {
             method: 'DELETE',
-            credentials: 'include'
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ id })
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload();
+            .then(res => res.json())
+            .then(resp => {
+                if (resp.success) {
+                    successMessage.textContent = 'Réservation supprimée.';
+                    successMessage.classList.remove('d-none');
+                    loadReservations();
                 } else {
-                    alert('Erreur: ' + data.message);
+                    errorMessage.textContent = resp.message || 'Erreur lors de la suppression.';
+                    errorMessage.classList.remove('d-none');
                 }
+            })
+            .catch(() => {
+                errorMessage.textContent = 'Erreur de connexion au serveur.';
+                errorMessage.classList.remove('d-none');
             });
-    }
-}
+    };
+});

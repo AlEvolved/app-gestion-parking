@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réserver une place - Gestion Parking</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+<!-- Conteneur pour la barre de navigation -->
+<div id="navbar-container"></div>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="bi bi-p-square me-2"></i>Réservation d'une place</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger d-none" id="errorMessage"></div>
+                    <div class="alert alert-success d-none" id="successMessage"></div>
+
+                    <form id="reservationForm">
+                        <div class="mb-3">
+                            <label for="place" class="form-label">Place de parking</label>
+                            <select class="form-select" id="place" required>
+                                <option value="">Sélectionner une place</option>
+                                <!-- Options chargées par JavaScript -->
+                            </select>
+                            <div class="form-text">Sélectionnez une place disponible</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dateDebut" class="form-label">Date et heure de début</label>
+                            <input type="datetime-local" class="form-control" id="dateDebut" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="dateFin" class="form-label">Date et heure de fin</label>
+                            <input type="datetime-local" class="form-control" id="dateFin" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>Confirmer la réservation
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../assets/js/auth.js"></script>
+<script src="../assets/js/client_navbar.js"></script>
+<script src="../assets/js/client_reservation_place.js"></script>
+</body>
+</html>

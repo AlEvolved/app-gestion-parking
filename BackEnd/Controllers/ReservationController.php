@@ -33,14 +33,16 @@ switch ($_SERVER['REQUEST_METHOD']) {
     case 'GET':
         if (isset($_GET['id'])) {
             $result = $reservation->getById($_GET['id']);
-            echo json_encode($result);
+            if (!$result || (isset($result['utilisateur_id']) && $result['utilisateur_id'] != $_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Accès refusé']);
+            } else {
+                echo json_encode($result);
+            }
         } else {
             $filters = [];
+            $filters['user_id'] = $_SESSION['user_id'];
             if (isset($_GET['statut']) && !empty($_GET['statut'])) $filters['statut'] = $_GET['statut'];
             if (isset($_GET['date']) && !empty($_GET['date'])) $filters['date'] = $_GET['date'];
-            if (isset($_GET['search']) && !empty($_GET['search'])) $filters['search'] = $_GET['search'];
-            if (isset($_GET['page'])) $filters['page'] = (int)$_GET['page'];
-            if (isset($_GET['limit'])) $filters['limit'] = (int)$_GET['limit'];
             $result = $reservation->getAll($filters);
             echo json_encode($result);
         }
@@ -48,20 +50,34 @@ switch ($_SERVER['REQUEST_METHOD']) {
 
     case 'POST':
         $data = json_decode(file_get_contents('php://input'), true);
+        // Paiement d'une réservation
+        if (isset($data['action']) && $data['action'] === 'payer' && isset($data['id'])) {
+            $result = $reservation->payer($data['id'], $_SESSION['user_id']);
+            echo json_encode($result);
+            break;
+        }
+        // Création classique
+        $data['utilisateur_id'] = $_SESSION['user_id'];
         $result = $reservation->create($data);
         echo json_encode($result);
         break;
 
     case 'PUT':
         $data = json_decode(file_get_contents('php://input'), true);
+        $data['utilisateur_id'] = $_SESSION['user_id'];
         $result = $reservation->update($data);
         echo json_encode($result);
         break;
 
     case 'DELETE':
         if (isset($_GET['id'])) {
-            $result = $reservation->delete($_GET['id']);
-            echo json_encode($result);
+            $reservationData = $reservation->getById($_GET['id']);
+            if (!$reservationData || (isset($reservationData['utilisateur_id']) && $reservationData['utilisateur_id'] != $_SESSION['user_id'])) {
+                echo json_encode(['success' => false, 'message' => 'Accès refusé']);
+            } else {
+                $result = $reservation->delete($_GET['id']);
+                echo json_encode($result);
+            }
         } else {
             echo json_encode([
                 'success' => false,
